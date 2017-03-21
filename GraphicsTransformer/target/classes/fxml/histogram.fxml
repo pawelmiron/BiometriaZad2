@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane id="AnchorPane" fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="892.0" prefWidth="1267.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="transformer.Screen1Controller">
+    <children>
+        <MenuBar fx:id="menuBar" layoutX="1.0" layoutY="1.0">
+            <menus>
+                <Menu mnemonicParsing="false" text="File">
+                    <items>
+                        <MenuItem fx:id="openMenuItem" mnemonicParsing="false" onAction="#handleOpenFile" text="Open">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="O" control="ANY" meta="UP" shift="UP" shortcut="UP" />
+                            </accelerator></MenuItem>
+                        <MenuItem mnemonicParsing="false" onAction="#handleSaveFile" text="Save">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="S" control="ANY" meta="UP" shift="UP" shortcut="UP" />
+                            </accelerator></MenuItem>
+                    </items>
+                </Menu>
+            <Menu mnemonicParsing="false" text="Windows">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#showMainWindow" text="Main Window" />
+                  <MenuItem mnemonicParsing="false" onAction="#showHistogramWindow" text="Histogram" />
+              </items>
+            </Menu>
+                <Menu mnemonicParsing="false" text="Help">
+                    <items>
+                        <MenuItem mnemonicParsing="false" text="About" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+        <ScrollPane fx:id="scrollPane" layoutY="70.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDropped="#mouseDragDropped" onDragOver="#mouseDragOver" prefHeight="800.0" prefWidth="1267.0">
+         <content>
+            <LineChart fx:id="lineChart" onMouseClicked="#showChart" prefHeight="791.0" prefWidth="1246.0">
+               <xAxis>
+                  <CategoryAxis side="BOTTOM" />
+               </xAxis>
+               <yAxis>
+                  <NumberAxis side="LEFT" />
+               </yAxis>
+            </LineChart>
+         </content>
+        </ScrollPane>
+    </children>
+</AnchorPane>

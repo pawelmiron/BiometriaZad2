@@ -1,0 +1,7 @@
+.root{
+    -fx-background-color: #383838;
+    -fx-font-size: 10pt;
+}
+.scroll-pane{
+    -fx-background-color: #383838;
+}
