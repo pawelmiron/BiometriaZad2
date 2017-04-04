@@ -17,6 +17,8 @@ public class ScreensFramework extends Application {
     public static final String MAIN_SCREEN_FXML = "/fxml/menu.fxml";
     public static final String HISTOGRAM_SCREEN = "histogram";
     public static final String HISTOGRAM_SCREEN_FXML = "/fxml/histogram.fxml";
+    public static final String HISTOGRAM2_SCREEN = "histogram2";
+    public static final String HISTOGRAM2_SCREEN_FXML = "/fxml/histogram2.fxml";
 
     @Override
     public void start(Stage primaryStage) {
@@ -26,6 +28,8 @@ public class ScreensFramework extends Application {
                 ScreensFramework.MAIN_SCREEN_FXML);
         mainContainer.loadScreen(ScreensFramework.HISTOGRAM_SCREEN,
                 ScreensFramework.HISTOGRAM_SCREEN_FXML);
+        mainContainer.loadScreen(ScreensFramework.HISTOGRAM2_SCREEN,
+                ScreensFramework.HISTOGRAM2_SCREEN_FXML);
         mainContainer.setScreen(ScreensFramework.MAIN_SCREEN);
 
         Group root = new Group();

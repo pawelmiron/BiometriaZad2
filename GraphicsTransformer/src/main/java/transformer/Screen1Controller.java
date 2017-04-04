@@ -21,12 +21,13 @@ import javafx.fxml.Initializable;
 import javafx.geometry.*;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.chart.LineChart;
+import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -35,6 +36,7 @@ import javafx.scene.image.PixelReader;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Screen;
@@ -67,9 +69,60 @@ public class Screen1Controller implements Initializable, ControlledScreen {
     @FXML
     private Slider slider;
     @FXML
-    private LineChart lineChart;
+    private BarChart barChart1;
+    @FXML
+    private BarChart barChart2;
+    @FXML
+    private BarChart barChart3;
+    @FXML
+    private BarChart barChart4;
 
     private ScreensController myController;
+
+    private long getSumOfPixelValueSquares() {
+        long sum = 0;
+        PixelReader pixelReader = imageView.getImage().getPixelReader();
+        for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+            for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                int red = (int) Math.round(255 * colorReaded.getRed());
+                sum += red * red;
+            }
+        }
+        return sum;
+    }
+
+    private double getAveragePixelValue() {
+        int sum = 0;
+        int count = 0;
+        PixelReader pixelReader = imageView.getImage().getPixelReader();
+        for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+            for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                int red = (int) Math.round(255 * colorReaded.getRed());
+                sum += red;
+                count++;
+            }
+        }
+        return sum / count;
+    }
+
+    private ImageView getImageView() {
+        AnchorPane anchorPane = (AnchorPane) myController.getScreens().get("menu");
+        anchorPane.getChildren();
+        ScrollPane scrollPane = null;
+        for (Node node : anchorPane.getChildren()) {
+            if (node instanceof ScrollPane) {
+                scrollPane = (ScrollPane) node;
+            }
+        }
+        if (scrollPane.getContent() != null) {
+            return (ImageView) scrollPane.getContent();
+        } else {
+            throw new NullPointerException();
+        }
+
+    }
 
     @FXML
     private void handleOpenFile(ActionEvent event) throws IOException {
@@ -90,7 +143,7 @@ public class Screen1Controller implements Initializable, ControlledScreen {
             }
         }
         updateStageOfBufforedImage();
-        getLineChart().getData().clear();
+        clearBarCharts();
     }
 
     private void updateStageOfBufforedImage() {
@@ -310,7 +363,7 @@ public class Screen1Controller implements Initializable, ControlledScreen {
     @SuppressWarnings("unchecked")
     @FXML
     private void showChart() throws FileNotFoundException, MalformedURLException {
-        if (lineChart.getData().isEmpty()) {
+        if (barChart1.getData().isEmpty()) {
             XYChart.Series seriesRed = new XYChart.Series();
             XYChart.Series seriesGreen = new XYChart.Series();
             XYChart.Series seriesBlue = new XYChart.Series();
@@ -369,13 +422,10 @@ public class Screen1Controller implements Initializable, ControlledScreen {
                 value = listOfMediumColorRepresentation.get(i);
                 seriesMedium.getData().add(new XYChart.Data<String, Integer>(String.valueOf(i), value));
             }
-
-
-            lineChart.getData().add(seriesRed);
-            lineChart.getData().add(seriesGreen);
-            lineChart.getData().add(seriesBlue);
-            lineChart.getData().add(seriesMedium);
-
+            barChart1.getData().add(seriesRed);
+            barChart2.getData().add(seriesGreen);
+            barChart3.getData().add(seriesBlue);
+            barChart4.getData().add(seriesMedium);
             System.out.println("showChart");
         }
     }
@@ -395,36 +445,25 @@ public class Screen1Controller implements Initializable, ControlledScreen {
         myController.setScreen(ScreensFramework.HISTOGRAM_SCREEN);
     }
 
-    private ImageView getImageView() {
-        AnchorPane anchorPane = (AnchorPane) myController.getScreens().get("menu");
-        anchorPane.getChildren();
-        ScrollPane scrollPane = null;
-        for (Node node : anchorPane.getChildren()) {
-            if (node instanceof ScrollPane) {
-                scrollPane = (ScrollPane) node;
-            }
-        }
-        if (scrollPane.getContent() != null) {
-            return (ImageView) scrollPane.getContent();
-        } else {
-            throw new NullPointerException();
-        }
-
+    @FXML
+    private void showHistogram2Window(ActionEvent event) {
+        myController.setScreen(ScreensFramework.HISTOGRAM2_SCREEN);
     }
 
-    private LineChart getLineChart() {
-        AnchorPane anchorPane = (AnchorPane) myController.getScreens().get("histogram");
+
+    private void clearBarCharts() {
+        AnchorPane anchorPane = (AnchorPane) myController.getScreens().get("histogram2");
         anchorPane.getChildren();
         ScrollPane scrollPane = null;
         for (Node node : anchorPane.getChildren()) {
             if (node instanceof ScrollPane) {
                 scrollPane = (ScrollPane) node;
+                GridPane gridPane = (GridPane) scrollPane.getContent();
+                for (Node nodeIn : gridPane.getChildren()) {
+                    BarChart barChart = (BarChart) nodeIn;
+                    barChart.getData().clear();
+                }
             }
-        }
-        if (scrollPane.getContent() != null) {
-            return (LineChart) scrollPane.getContent();
-        } else {
-            throw new NullPointerException();
         }
     }
 
@@ -487,21 +526,21 @@ public class Screen1Controller implements Initializable, ControlledScreen {
                         } else if (red > maxIntesivity) {
                             red = 255;
                         } else {
-                            red = (red - minIntesivity) * 255/(maxIntesivity - minIntesivity);
+                            red = (red - minIntesivity) * 255 / (maxIntesivity - minIntesivity);
                         }
                         if (green < minIntesivity) {
                             green = 0;
                         } else if (green > maxIntesivity) {
                             green = 255;
                         } else {
-                            green = (green - minIntesivity) * 255/(maxIntesivity - minIntesivity);
+                            green = (green - minIntesivity) * 255 / (maxIntesivity - minIntesivity);
                         }
                         if (blue < minIntesivity) {
                             blue = 0;
                         } else if (blue > maxIntesivity) {
                             blue = 255;
                         } else {
-                            blue = (blue - minIntesivity) * 255/(maxIntesivity - minIntesivity);
+                            blue = (blue - minIntesivity) * 255 / (maxIntesivity - minIntesivity);
                         }
                         Color color = new Color(red, green, blue);
                         image.setRGB(i, j, color.getRGB());
@@ -517,5 +556,598 @@ public class Screen1Controller implements Initializable, ControlledScreen {
             slider.setValue(1);
         }
     }
-}
 
+    @FXML
+    private void decideLightChange(ActionEvent event) {
+        MenuItem menuItem = (MenuItem) event.getSource();
+        if ("lightButton".equals(menuItem.getId())) {
+            changeLight(true);
+        } else {
+            changeLight(false);
+        }
+    }
+
+    @FXML
+    private void decidePreetyGreyScale(ActionEvent event) {
+        MenuItem menuItem = (MenuItem) event.getSource();
+        if ("Preety Grey Scale".equals(menuItem.getId())) {
+            grayScaleImage(true);
+        } else {
+            grayScaleImage(false);
+        }
+    }
+
+    private void changeLight(boolean light) {
+        if (imageView.getImage() != null) {
+            BufferedImage image = SwingFXUtils.fromFXImage(imageView.getImage(), null);
+            PixelReader pixelReader = imageView.getImage().getPixelReader();
+            for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                    try {
+                        javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                        int red = (int) Math.round(255 * colorReaded.getRed());
+                        int green = (int) Math.round(255 * colorReaded.getGreen());
+                        int blue = (int) Math.round(255 * colorReaded.getBlue());
+
+                        if (!light) {
+                            red = (int) (0.0039 * red * red);
+                            green = (int) (0.0039 * green * green);
+                            blue = (int) (0.0039 * blue * blue);
+                        } else {
+                            double x = 0.002 * red * red;
+                            int r = red + (int) x;
+                            x = 0.002 * green * green;
+                            int g = green + (int) x;
+                            x = 0.002 * blue * blue;
+                            int b = blue + (int) x;
+
+                            if (r < 255) {
+                                red = r;
+                            }
+                            if (g < 255) {
+                                green = g;
+                            }
+                            if (b < 255) {
+                                blue = b;
+                            }
+                        }
+                        Color color = new Color(red, green, blue);
+                        image.setRGB(i, j, color.getRGB());
+                    } catch (java.lang.IllegalArgumentException ex) {
+                        System.out.println("error");
+                        logger.info("handleSetRGB - no value specified for RGB, retrying");
+                    }
+                }
+            }
+            imageView.setImage(SwingFXUtils.toFXImage(image, null));
+            updateStageOfBufforedImage();
+            changeBufforedImageSize(1 / slider.getValue());
+            updateStageOfBufforedImage();
+            slider.setValue(1);
+        }
+    }
+
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @FXML
+    private void equalizeImage(ActionEvent actionEvent) {
+        Image image = getImageView().getImage();
+        if (image != null) {
+            ArrayList<Integer> listOfRedColorRepresentation = new ArrayList<>();
+            ArrayList<Integer> listOfGreenColorRepresentation = new ArrayList<>();
+            ArrayList<Integer> listOfBlueColorRepresentation = new ArrayList<>();
+            ArrayList<Double> pmfRedValueList = new ArrayList<>();
+            ArrayList<Double> pmfGreenValueList = new ArrayList<>();
+            ArrayList<Double> pmfBlueValueList = new ArrayList<>();
+            ArrayList<Double> cdfRedValueList = new ArrayList<>();
+            ArrayList<Double> cdfGreenValueList = new ArrayList<>();
+            ArrayList<Double> cdfBlueValueList = new ArrayList<>();
+            ArrayList<Integer> newRedLevelValueList = new ArrayList<>();
+            ArrayList<Integer> newGreenLevelValueList = new ArrayList<>();
+            ArrayList<Integer> newBlueLevelValueList = new ArrayList<>();
+
+            for (int i = 0; i < 256; i++) {
+                listOfBlueColorRepresentation.add(0);
+                listOfGreenColorRepresentation.add(0);
+                listOfRedColorRepresentation.add(0);
+            }
+            int allPixelCount = 0;
+            PixelReader pixelReader = image.getPixelReader();
+
+            for (int i = 0; i < image.getWidth(); i++) {
+                for (int j = 0; j < image.getHeight(); j++) {
+                    javafx.scene.paint.Color color = pixelReader.getColor(i, j);
+                    int index = (int) Math.round(255 * color.getRed());
+                    int number = listOfRedColorRepresentation.get(index);
+                    number++;
+                    listOfRedColorRepresentation.set(index, number);
+                    index = (int) Math.round(255 * color.getGreen());
+                    number = listOfGreenColorRepresentation.get(index);
+                    number++;
+                    listOfGreenColorRepresentation.set(index, number);
+                    index = (int) Math.round(255 * color.getBlue());
+                    number = listOfBlueColorRepresentation.get(index);
+                    number++;
+                    listOfBlueColorRepresentation.set(index, number);
+                    allPixelCount++;
+                }
+            }
+
+            for (int i = 0; i < 256; i++) {
+                pmfRedValueList.add(Double.valueOf(listOfRedColorRepresentation.get(i)) / ((double) allPixelCount));
+                pmfGreenValueList.add(Double.valueOf(listOfGreenColorRepresentation.get(i)) / ((double) allPixelCount));
+                pmfBlueValueList.add(Double.valueOf(listOfBlueColorRepresentation.get(i)) / ((double) allPixelCount));
+            }
+
+            cdfRedValueList.add(pmfRedValueList.get(0));
+            cdfGreenValueList.add(pmfGreenValueList.get(0));
+            cdfBlueValueList.add(pmfBlueValueList.get(0));
+
+            for (int i = 1; i < 256; i++) {
+                cdfRedValueList.add(pmfRedValueList.get(i) + cdfRedValueList.get(i - 1));
+                cdfGreenValueList.add(pmfGreenValueList.get(i) + cdfGreenValueList.get(i - 1));
+                cdfBlueValueList.add(pmfBlueValueList.get(i) + cdfBlueValueList.get(i - 1));
+            }
+
+            for (int i = 0; i < 256; i++) {
+                newRedLevelValueList.add((int) (cdfBlueValueList.get(i) * 255));
+                newGreenLevelValueList.add((int) (cdfGreenValueList.get(i) * 255));
+                newBlueLevelValueList.add((int) (cdfBlueValueList.get(i) * 255));
+            }
+
+
+            if (imageView.getImage() != null) {
+                BufferedImage bufferedImage = SwingFXUtils.fromFXImage(imageView.getImage(), null);
+                for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                    for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                        try {
+                            javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                            int red = (int) Math.round(255 * colorReaded.getRed());
+                            int green = (int) Math.round(255 * colorReaded.getGreen());
+                            int blue = (int) Math.round(255 * colorReaded.getBlue());
+                            red = newRedLevelValueList.get(red);
+                            green = newGreenLevelValueList.get(green);
+                            blue = newBlueLevelValueList.get(blue);
+                            Color color = new Color(red, green, blue);
+                            bufferedImage.setRGB(i, j, color.getRGB());
+                        } catch (java.lang.IllegalArgumentException ex) {
+                            System.out.println("error");
+                            logger.info("handleSetRGB - no value specified for RGB, retrying");
+                        }
+                    }
+                }
+                imageView.setImage(SwingFXUtils.toFXImage(bufferedImage, null));
+                updateStageOfBufforedImage();
+                changeBufforedImageSize(1 / slider.getValue());
+                updateStageOfBufforedImage();
+                slider.setValue(1);
+            }
+            clearBarCharts();
+            System.out.println("showChart");
+        }
+    }
+
+
+    private void grayScaleImage(Boolean preety) {
+        if (imageView.getImage() != null) {
+            BufferedImage image = SwingFXUtils.fromFXImage(imageView.getImage(), null);
+            PixelReader pixelReader = imageView.getImage().getPixelReader();
+            for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                    try {
+                        javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                        int red = (int) Math.round(255 * colorReaded.getRed());
+                        int green = (int) Math.round(255 * colorReaded.getGreen());
+                        int blue = (int) Math.round(255 * colorReaded.getBlue());
+                        if (!preety) {
+                            int grey = (red + green + blue) / 3;
+                            red = grey;
+                            green = grey;
+                            blue = grey;
+                            ;
+                        } else {
+                            int grey = (red + green + blue);
+                            red = (int) (0.3 * grey);
+                            green = (int) (0.59 * grey);
+                            blue = (int) (0.11 * grey);
+                        }
+                        Color color = new Color(red, green, blue);
+                        image.setRGB(i, j, color.getRGB());
+                    } catch (java.lang.IllegalArgumentException ex) {
+                        System.out.println("error");
+                        logger.info("handleSetRGB - no value specified for RGB, retrying");
+                    }
+                }
+            }
+            imageView.setImage(SwingFXUtils.toFXImage(image, null));
+            updateStageOfBufforedImage();
+            changeBufforedImageSize(1 / slider.getValue());
+            updateStageOfBufforedImage();
+            slider.setValue(1);
+        }
+    }
+
+    @FXML
+    private void thresholdImage(ActionEvent event) {
+        grayScaleImage(false);
+        int borderValue = 0;
+        if (imageView.getImage() != null) {
+            TextInputDialog dialog = new TextInputDialog("0");
+            dialog.setTitle("Thresholding");
+            dialog.setHeaderText("Give a threshold value");
+            dialog.setContentText("Value:");
+            Optional<String> result = dialog.showAndWait();
+            try {
+                if (result.isPresent()) {
+                    borderValue = Integer.parseInt(result.get());
+                }
+            } catch (Exception e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Wrong value");
+                alert.setContentText("Please give correct input value");
+                alert.showAndWait();
+            }
+            BufferedImage image = SwingFXUtils.fromFXImage(imageView.getImage(), null);
+            PixelReader pixelReader = imageView.getImage().getPixelReader();
+            for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                    try {
+                        javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                        int red = (int) Math.round(255 * colorReaded.getRed());
+                        int green;
+                        int blue;
+
+
+                        if (red > borderValue) {
+                            red = 255;
+                            green = 255;
+                            blue = 255;
+                        } else {
+                            red = 0;
+                            green = 0;
+                            blue = 0;
+                        }
+                        Color color = new Color(red, green, blue);
+                        image.setRGB(i, j, color.getRGB());
+                    } catch (java.lang.IllegalArgumentException ex) {
+                        System.out.println("error");
+                        logger.info("handleSetRGB - no value specified for RGB, retrying");
+                    }
+                }
+            }
+            imageView.setImage(SwingFXUtils.toFXImage(image, null));
+            updateStageOfBufforedImage();
+            changeBufforedImageSize(1 / slider.getValue());
+            updateStageOfBufforedImage();
+            slider.setValue(1);
+        }
+    }
+
+
+    private ArrayList<Integer> getHistogram() {
+        Image image = imageView.getImage();
+        PixelReader pixelReader = image.getPixelReader();
+        ArrayList<Integer> histogram = new ArrayList<>();
+        for (int i = 0; i < 256; i++) {
+            histogram.add(0);
+        }
+        for (int i = 0; i < image.getWidth(); i++) {
+            for (int j = 0; j < image.getHeight(); j++) {
+                javafx.scene.paint.Color color = pixelReader.getColor(i, j);
+                int index = (int) Math.round(255 * color.getRed());
+                int number = histogram.get(index);
+                number++;
+                histogram.set(index, number);
+            }
+        }
+        return histogram;
+    }
+
+    private int getNumberOfPixelsInImage() {
+        int numberOfPixels = 0;
+        for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+            for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                numberOfPixels++;
+            }
+        }
+        return numberOfPixels;
+    }
+
+    @FXML
+    private void thresholdImageWithOtsu(ActionEvent event) {
+        grayScaleImage(false);
+        int borderValue = otsu();
+        if (imageView.getImage() != null) {
+            BufferedImage image = SwingFXUtils.fromFXImage(imageView.getImage(), null);
+            PixelReader pixelReader = imageView.getImage().getPixelReader();
+
+            for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                    try {
+                        javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                        int red = (int) Math.round(255 * colorReaded.getRed());
+                        int green;
+                        int blue;
+                        if (red > borderValue) {
+                            red = 255;
+                            green = 255;
+                            blue = 255;
+                        } else {
+                            red = 0;
+                            green = 0;
+                            blue = 0;
+                        }
+                        Color color = new Color(red, green, blue);
+                        image.setRGB(i, j, color.getRGB());
+                    } catch (java.lang.IllegalArgumentException ex) {
+                        System.out.println("error");
+                        logger.info("handleSetRGB - no value specified for RGB, retrying");
+                    }
+                }
+            }
+            imageView.setImage(SwingFXUtils.toFXImage(image, null));
+            updateStageOfBufforedImage();
+            changeBufforedImageSize(1 / slider.getValue());
+            updateStageOfBufforedImage();
+            slider.setValue(1);
+        }
+    }
+
+    @FXML
+    private void thresholdImageWithNiblack(ActionEvent event) {
+        long timeStart = System.currentTimeMillis();
+        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("Pass values");
+        ButtonType loginButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+        TextField fromTextField = new TextField();
+        fromTextField.setPromptText("k");
+        TextField toTextField = new TextField();
+        toTextField.setPromptText("wideness");
+        grid.add(new Label("k:"), 0, 0);
+        grid.add(fromTextField, 1, 0);
+        grid.add(new Label("wideness:"), 0, 1);
+        grid.add(toTextField, 1, 1);
+        Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
+        loginButton.setDisable(true);
+        fromTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            loginButton.setDisable(newValue.trim().isEmpty());
+        });
+        toTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            loginButton.setDisable(newValue.trim().isEmpty());
+        });
+        dialog.getDialogPane().setContent(grid);
+        Platform.runLater(() -> fromTextField.requestFocus());
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == loginButtonType) {
+                return new Pair<>(fromTextField.getText(), toTextField.getText());
+            }
+            return null;
+        });
+        Optional<Pair<String, String>> result = dialog.showAndWait();
+        final double[] fromValue = new double[1];
+        final int[] toValue = new int[1];
+        result.ifPresent(usernamePassword -> {
+            fromValue[0] = Double.parseDouble(usernamePassword.getKey());
+            toValue[0] = Integer.parseInt(usernamePassword.getValue());
+        });
+        double k = fromValue[0];
+        int wideness = toValue[0];
+        int numberOfPixels = getNumberOfPixelsInImage();
+        double averagePixelValue = getAveragePixelValue();
+        long sumOfPixelValueSquares = getSumOfPixelValueSquares();
+        grayScaleImage(false);
+        if (imageView.getImage() != null) {
+            BufferedImage image = SwingFXUtils.fromFXImage(imageView.getImage(), null);
+            PixelReader pixelReader = imageView.getImage().getPixelReader();
+            int wide = (int) imageView.getImage().getWidth();
+            int high = (int) imageView.getImage().getHeight();
+            for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                    try {
+                        javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                        int red = (int) Math.round(255 * colorReaded.getRed());
+                        int green;
+                        int blue;
+                        int borderValue = (int) getNiblack(i, j, pixelReader, wideness, k, wide, high);
+                        if (red > borderValue) {
+                            red = 255;
+                            green = 255;
+                            blue = 255;
+                        } else {
+                            red = 0;
+                            green = 0;
+                            blue = 0;
+                        }
+                        Color color = new Color(red, green, blue);
+                        image.setRGB(i, j, color.getRGB());
+                    } catch (java.lang.IllegalArgumentException ex) {
+                        System.out.println("error");
+                        logger.info("handleSetRGB - no value specified for RGB, retrying");
+                    }
+                }
+            }
+            imageView.setImage(SwingFXUtils.toFXImage(image, null));
+            updateStageOfBufforedImage();
+            changeBufforedImageSize(1 / slider.getValue());
+            updateStageOfBufforedImage();
+            slider.setValue(1);
+        }
+        long timeStop = System.currentTimeMillis();
+        System.out.println(timeStop - timeStart);
+    }
+
+
+    private int otsu() {
+        double p0 = 0;
+        double p1 = 0;
+        double uT = 0;
+        double u0 = 0;
+        double u1 = 0;
+        double oT = 0;
+        double uB = 0;
+        double oTconst;
+        ArrayList<Double> n = new ArrayList<Double>();
+        ArrayList<Integer> histogram = getHistogram();
+        for (int i = 0; i < histogram.size(); i++) {
+            n.add(0d);
+        }
+        ArrayList<Double> P = getProbability(histogram);
+        for (int t = 0; t < P.size(); t++) {
+            p0 = p1 = uT = u0 = u1 = oTconst = uB = oT = 0;
+            n.set(t, (double) 0);
+            for (int i = 0; i <= t; i++) {
+                p0 += P.get(i);
+            }
+            for (int i = t + 1; i < P.size(); i++) {
+                p1 += P.get(i);
+            }
+            for (int i = 0; i < P.size(); i++) {
+                uT += (i * P.get(i));
+            }
+            for (int i = 0; i <= t; i++) {
+                u0 += (i * P.get(i));
+            }
+            for (int i = t + 1; i < P.size(); i++) {
+                u1 += (i * P.get(i));
+            }
+            oT = 0;
+            for (int i = 0; i < P.size(); i++) {
+                oTconst = i - uT;
+                oT += ((oTconst * oTconst) * P.get(i));
+            }
+            uB = p0 * p1 * (u0 / p0 - u1 / p1) * (u0 / p0 - u1 / p1);
+            n.set(t, uB / oT);
+        }
+        return getMaxIndex(n);
+    }
+
+    private int getMaxIndex(ArrayList<Double> n) {
+        double max = 0;
+        int index = -1;
+
+        for (double d : n) {
+            if (d > max) {
+                max = d;
+                index++;
+            }
+        }
+        return index;
+    }
+
+    private ArrayList<Double> getProbability(ArrayList<Integer> histogram) {
+        ArrayList<Double> array = new ArrayList<>();
+        for (int i = 0; i < histogram.size(); i++) {
+            array.add(0d);
+        }
+        double sum = getSumOfHistogram(histogram);
+        for (int i = 0; i < histogram.size(); i++) {
+            array.set(i, (double) histogram.get(i) / sum);
+        }
+        return array;
+    }
+
+    private double getSumOfHistogram(ArrayList<Integer> histogram) {
+        double sum = 0;
+        for (Integer i : histogram) {
+            sum += i;
+        }
+        return sum;
+    }
+
+    private int getNiblack(int i, int j, PixelReader pixelReader, int wideness, double k, int wide, int high) {
+        double border = 0;
+        int avg = getAvgFromSquare(pixelReader, wideness, i, j, wide, high);
+        int deviation = getDeviationFromSquare(pixelReader, wideness, i, j, wide, high);
+        border = avg + k * deviation;
+        return (int) border;
+    }
+
+    private int getDeviationFromSquare(PixelReader pixelReader, int wideness, int i, int j, int wide, int high) {
+        int sum = 0;
+        int count = 0;
+        int g = wideness / 2;
+        int mean = getAvgFromSquare(pixelReader, wideness, i, j, wide, high);
+        int minusI = i - g;
+        int minusJ = j - g;
+        int plusI = i + g;
+        int plusJ = j + g;
+        try {
+            for (int x = minusI; x <= plusI; x++) {
+                for (int y = minusJ; y <= plusJ; y++) {
+                    if (x > 0 && y > 0 && x <= wide && y <= high) {
+                        int red = (int) Math.round(255 * pixelReader.getColor(x, y).getRed());
+                        count++;
+                        sum += Math.pow(red - mean, 2);
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return (int) Math.sqrt(sum / count);
+    }
+
+    private int getAvgFromSquare(PixelReader pixelReader, int wideness, int i, int j, int wide, int high) {
+        int sum = 0;
+        int count = 0;
+        int g = wideness / 2;
+        int minusI = i - g;
+        int minusJ = j - g;
+        int plusI = i + g;
+        int plusJ = j + g;
+        try {
+            for (int x = minusI; x <= plusI; x++) {
+                for (int y = minusJ; y <= plusJ; y++) {
+                    if (x > 0 && y > 0 && x <= wide && y <= high) {
+                        int red = (int) Math.round(255 * pixelReader.getColor(x, y).getRed());
+                        sum += red;
+                        count++;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return sum / count;
+    }
+
+    @FXML
+    private void changeTransitionLogo() {
+        if (imageView.getImage() != null) {
+            BufferedImage image = SwingFXUtils.fromFXImage(imageView.getImage(), null);
+            PixelReader pixelReader = imageView.getImage().getPixelReader();
+
+            for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                    try {
+                        javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                        int red = (int) Math.round(255 * colorReaded.getRed());
+                        int green = (int) Math.round(255 * colorReaded.getRed());
+                        int blue = (int) Math.round(255 * colorReaded.getRed());
+                        int alfa = (int) Math.round(255 * colorReaded.getHue());
+                        if (alfa!=0 && red==3 && green==3 && blue==3) {
+                            red = 255;
+                            green = 255;
+                            blue = 255;
+
+
+                            Color color = new Color(red, green, blue);
+                            image.setRGB(i, j, color.getRGB());
+                        }
+                    } catch (java.lang.IllegalArgumentException ex) {
+                        System.out.println("error");
+                        logger.info("handleSetRGB - no value specified for RGB, retrying");
+                    }
+                }
+            }
+            imageView.setImage(SwingFXUtils.toFXImage(image, null));
+            updateStageOfBufforedImage();
+            changeBufforedImageSize(1 / slider.getValue());
+            updateStageOfBufforedImage();
+            slider.setValue(1);
+        }
+    }
+}

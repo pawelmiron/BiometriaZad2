@@ -5,3 +5,14 @@
 .scroll-pane{
     -fx-background-color: #383838;
 }
+
+.default-color0.chart-bar {
+      -fx-bar-fill: #0cb700;
+}
+
+#chart2{
+    -fx-bar-fill: #ff0000;
+}
+
+
+

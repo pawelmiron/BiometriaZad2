@@ -32,12 +32,21 @@
                     <items>
                         <MenuItem mnemonicParsing="false" onAction="#resetImage" text="Reset image" />
                   <MenuItem mnemonicParsing="false" onAction="#stretchHistogram" text="Streatch  Histogram" />
+                  <MenuItem fx:id="lightButton" mnemonicParsing="false" onAction="#decideLightChange" text="Lighten up" />
+                  <MenuItem fx:id="darkButton" mnemonicParsing="false" onAction="#decideLightChange" text="Darken" />
+                  <MenuItem mnemonicParsing="false" onAction="#equalizeImage" text="Equalize Histogram" />
+                  <MenuItem mnemonicParsing="false" onAction="#decidePreetyGreyScale" text="Preety Grey Scale" />
+                  <MenuItem mnemonicParsing="false" onAction="#decidePreetyGreyScale" text="Grey Scale" />
+                  <MenuItem mnemonicParsing="false" onAction="#thresholdImage" text="Threshold Image" />
+                  <MenuItem mnemonicParsing="false" onAction="#thresholdImageWithOtsu" text="Threshold Image OTSU" />
+                  <MenuItem mnemonicParsing="false" onAction="#thresholdImageWithNiblack" text="Threshold Image Niblack" />
+                  <MenuItem mnemonicParsing="false" onAction="#changeTransitionLogo" text="Transition" />
                     </items>
                 </Menu>
             <Menu mnemonicParsing="false" text="Windows">
               <items>
                 <MenuItem mnemonicParsing="false" text="Main Window" />
-                  <MenuItem mnemonicParsing="false" onAction="#showHistogramWindow" text="Histogram" />
+                  <MenuItem mnemonicParsing="false" onAction="#showHistogram2Window" text="HistogramBars" />
               </items>
             </Menu>
                 <Menu mnemonicParsing="false" text="Help">
@@ -57,7 +66,7 @@
                 <Font name="Cambria Math" size="21.0" />
             </font>
         </Label>
-      <Slider fx:id="slider" blockIncrement="0.5" layoutX="558.0" layoutY="2.0" max="4.0" onMouseClicked="#handleZoom" onMouseDragged="#handleZoom" prefHeight="40.0" prefWidth="331.0" showTickLabels="true" value="1.0" />
-      <ColorPicker fx:id="colorPicker" layoutX="334.0" layoutY="6.0" />
+      <Slider fx:id="slider" blockIncrement="0.5" layoutX="704.0" layoutY="10.0" max="4.0" onMouseClicked="#handleZoom" onMouseDragged="#handleZoom" prefHeight="40.0" prefWidth="331.0" showTickLabels="true" value="1.0" />
+      <ColorPicker fx:id="colorPicker" layoutX="524.0" layoutY="15.0" />
     </children>
 </AnchorPane>
