@@ -1132,8 +1132,6 @@ public class Screen1Controller implements Initializable, ControlledScreen {
                             red = 255;
                             green = 255;
                             blue = 255;
-
-
                             Color color = new Color(red, green, blue);
                             image.setRGB(i, j, color.getRGB());
                         }
@@ -1149,5 +1147,42 @@ public class Screen1Controller implements Initializable, ControlledScreen {
             updateStageOfBufforedImage();
             slider.setValue(1);
         }
+    }
+
+    @FXML
+    private void konwulcja(ActionEvent event){
+
+        if (imageView.getImage() != null) {
+            BufferedImage image = SwingFXUtils.fromFXImage(imageView.getImage(), null);
+            PixelReader pixelReader = imageView.getImage().getPixelReader();
+
+            for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                    try {
+                        javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                        int red = (int) Math.round(255 * colorReaded.getRed());
+                        int green = (int) Math.round(255 * colorReaded.getRed());
+                        int blue = (int) Math.round(255 * colorReaded.getRed());
+
+
+                            red = 255;
+                            green = 255;
+                            blue = 255;
+                            Color color = new Color(red, green, blue);
+                            image.setRGB(i, j, color.getRGB());
+                        
+                    } catch (java.lang.IllegalArgumentException ex) {
+                        System.out.println("error");
+                        logger.info("handleSetRGB - no value specified for RGB, retrying");
+                    }
+                }
+            }
+            imageView.setImage(SwingFXUtils.toFXImage(image, null));
+            updateStageOfBufforedImage();
+            changeBufforedImageSize(1 / slider.getValue());
+            updateStageOfBufforedImage();
+            slider.setValue(1);
+        }
+
     }
 }
