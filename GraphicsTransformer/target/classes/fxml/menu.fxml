@@ -54,6 +54,11 @@
                         <MenuItem mnemonicParsing="false" text="About" />
                     </items>
                 </Menu>
+            <Menu mnemonicParsing="false" text="Projects">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#kmm" text="KMM" />
+              </items>
+            </Menu>
             </menus>
         </MenuBar>
         <ScrollPane fx:id="scrollPane" layoutY="70.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDropped="#mouseDragDropped" onDragOver="#mouseDragOver" prefHeight="800.0" prefWidth="1080.0">

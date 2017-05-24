@@ -36,7 +36,6 @@ import javafx.scene.image.PixelReader;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Screen;
@@ -1128,7 +1127,7 @@ public class Screen1Controller implements Initializable, ControlledScreen {
                         int green = (int) Math.round(255 * colorReaded.getRed());
                         int blue = (int) Math.round(255 * colorReaded.getRed());
                         int alfa = (int) Math.round(255 * colorReaded.getHue());
-                        if (alfa!=0 && red==3 && green==3 && blue==3) {
+                        if (alfa != 0 && red == 3 && green == 3 && blue == 3) {
                             red = 255;
                             green = 255;
                             blue = 255;
@@ -1150,7 +1149,7 @@ public class Screen1Controller implements Initializable, ControlledScreen {
     }
 
     @FXML
-    private void konwulcja(ActionEvent event){
+    private void konwulcja(ActionEvent event) {
 
         if (imageView.getImage() != null) {
             BufferedImage image = SwingFXUtils.fromFXImage(imageView.getImage(), null);
@@ -1165,12 +1164,12 @@ public class Screen1Controller implements Initializable, ControlledScreen {
                         int blue = (int) Math.round(255 * colorReaded.getRed());
 
 
-                            red = 255;
-                            green = 255;
-                            blue = 255;
-                            Color color = new Color(red, green, blue);
-                            image.setRGB(i, j, color.getRGB());
-                        
+                        red = 255;
+                        green = 255;
+                        blue = 255;
+                        Color color = new Color(red, green, blue);
+                        image.setRGB(i, j, color.getRGB());
+
                     } catch (java.lang.IllegalArgumentException ex) {
                         System.out.println("error");
                         logger.info("handleSetRGB - no value specified for RGB, retrying");
@@ -1183,6 +1182,518 @@ public class Screen1Controller implements Initializable, ControlledScreen {
             updateStageOfBufforedImage();
             slider.setValue(1);
         }
+    }
+
+    private Integer[] DELETATIONLIST = {3, 5, 7, 12, 13, 14, 15, 20,
+            21, 22, 23, 28, 29, 30, 31, 48,
+            52, 53, 54, 55, 56, 60, 61, 62,
+            63, 65, 67, 69, 71, 77, 79, 80,
+            81, 83, 84, 85, 86, 87, 88, 89,
+            91, 92, 93, 94, 95, 97, 99, 101,
+            103, 109, 111, 112, 113, 115, 116, 117,
+            118, 119, 120, 121, 123, 124, 125, 126,
+            127, 131, 133, 135, 141, 143, 149, 151,
+            157, 159, 181, 183, 189, 191, 192, 193,
+            195, 197, 199, 205, 207, 208, 209, 211,
+            212, 213, 214, 215, 216, 217, 219, 220,
+            221, 222, 223, 224, 225, 227, 229, 231,
+            237, 239, 240, 241, 243, 244, 245, 246,
+            247, 248, 249, 251, 252, 253, 254, 255};
+
+    @FXML
+    public void kmm() {
+        thresholdImage(new ActionEvent());
+        List<Integer> DELETATIONLIST = Arrays.asList(this.DELETATIONLIST);
+        //Mark all black pixels ‘1’
+        ArrayList<ArrayList<Integer>> imageRepresentation = getInitialArrayForKmm();
+        boolean deleted = true;
+        while (deleted) {
+            deleted = false;
+            //‘1’ pixels, which stick the background with edge are changed into ‘2’
+            imageRepresentation = change1EdgeConnnectedTo0To2(imageRepresentation);
+            //1’ pixels that stick the background with corner are changed into ‘3’
+            imageRepresentation = change1CornerrConnnectedTo0To3(imageRepresentation);
+            //Contour points with 2, 3 or 4 sticking neighbours are changed into ‘4’
+            imageRepresentation = changePixelsWith2or3or4NeighboursTo4(imageRepresentation);
+            //Delete all ‘4’ pixels
+            imageRepresentation = deleteAll4(imageRepresentation);
+            int width = imageRepresentation.size();
+            int heigth = imageRepresentation.get(0).size();
+
+
+            for (int n = 2; n <= 3; n++) {
+                for (int i = 0; i < width; i++) {
+                    for (int j = 0; j < heigth; j++) {
+                        if (imageRepresentation.get(i).get(j) == n) {
+                            int weight = calculatePixelWeight(imageRepresentation, i, j);
+                            if (DELETATIONLIST.contains(weight)) {
+                                imageRepresentation.get(i).set(j, 0);
+                                deleted = true;
+                            } else {
+                                imageRepresentation.get(i).set(j, 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        imageRepresentation = detectMinutiae(imageRepresentation);
+
+        for (ArrayList<Integer> row : imageRepresentation) {
+            System.out.println();
+            for (Integer value : row) {
+                System.out.print(value + " ");
+            }
+        }
+
+        if (imageView.getImage() != null) {
+            BufferedImage image = SwingFXUtils.fromFXImage(imageView.getImage(), null);
+            PixelReader pixelReader = imageView.getImage().getPixelReader();
+
+            for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                    Color color;
+                    if (imageRepresentation.get(i).get(j) == 1) {
+                        color = new Color(0, 0, 0);
+                        image.setRGB(i, j, color.getRGB());
+                    } else {
+                        color = new Color(255, 255, 255);
+                        image.setRGB(i, j, color.getRGB());
+                    }
+                }
+
+            }
+            for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+
+                    Color color;
+                    if (imageRepresentation.get(i).get(j) == 2) {
+                        color = new Color(255, 0, 0);
+                        image.setRGB(i, j, color.getRGB());
+                        image.setRGB(i - 1, j - 1, color.getRGB());
+                        image.setRGB(i, j - 1, color.getRGB());
+                        image.setRGB(i + 1, j - 1, color.getRGB());
+                        image.setRGB(i + 1, j, color.getRGB());
+                        image.setRGB(i + 1, j + 1, color.getRGB());
+                        image.setRGB(i, j + 1, color.getRGB());
+                        image.setRGB(i - 1, j + 1, color.getRGB());
+                        image.setRGB(i, j - 1, color.getRGB());
+                        image.setRGB(i-1,j, color.getRGB());
+                    } else if (imageRepresentation.get(i).get(j) == 3) {
+                        color = new Color(0, 0, 255);
+                        image.setRGB(i, j, color.getRGB());
+                        image.setRGB(i - 1, j - 1, color.getRGB());
+                        image.setRGB(i, j - 1, color.getRGB());
+                        image.setRGB(i + 1, j - 1, color.getRGB());
+                        image.setRGB(i + 1, j, color.getRGB());
+                        image.setRGB(i + 1, j + 1, color.getRGB());
+                        image.setRGB(i, j + 1, color.getRGB());
+                        image.setRGB(i - 1, j + 1, color.getRGB());
+                        image.setRGB(i, j - 1, color.getRGB());
+                        image.setRGB(i-1,j, color.getRGB());
+                    }
+
+
+                }
+            }
+            imageView.setImage(SwingFXUtils.toFXImage(image, null));
+            updateStageOfBufforedImage();
+            changeBufforedImageSize(1 / slider.getValue());
+            updateStageOfBufforedImage();
+            slider.setValue(1);
+        }
+    }
+
+
+    private int calculatePixelWeight(ArrayList<ArrayList<Integer>> imageRepresentation, int i, int j) {
+        int sum = 0;
+        int pixel1 = 0, pixel2 = 0, pixel3 = 0, pixel4 = 0, pixel5 = 0, pixel6 = 0, pixel7 = 0, pixel8 = 0;
+
+        try {
+            pixel1 = imageRepresentation.get(i).get(j - 1);
+        } catch (Exception ignored) {
+        }
+        try {
+            pixel2 = imageRepresentation.get(i + 1).get(j - 1);
+        } catch (Exception ignored) {
+        }
+        try {
+            pixel3 = imageRepresentation.get(i + 1).get(j);
+        } catch (Exception ignored) {
+        }
+        try {
+            pixel4 = imageRepresentation.get(i + 1).get(j + 1);
+        } catch (Exception ignored) {
+        }
+        try {
+            pixel5 = imageRepresentation.get(i).get(j + 1);
+        } catch (Exception ignored) {
+        }
+        try {
+            pixel6 = imageRepresentation.get(i - 1).get(j + 1);
+        } catch (Exception ignored) {
+        }
+        try {
+            pixel7 = imageRepresentation.get(i - 1).get(j);
+        } catch (Exception ignored) {
+        }
+        try {
+            pixel8 = imageRepresentation.get(i - 1).get(j - 1);
+        } catch (Exception ignored) {
+        }
+
+        if (pixel1 > 0) {
+            sum += 1;
+        }
+        if (pixel2 > 0) {
+            sum += 2;
+        }
+        if (pixel3 > 0) {
+            sum += 4;
+        }
+        if (pixel4 > 0) {
+            sum += 8;
+        }
+        if (pixel5 > 0) {
+            sum += 16;
+        }
+        if (pixel6 > 0) {
+            sum += 32;
+        }
+        if (pixel7 > 0) {
+            sum += 64;
+        }
+        if (pixel8 > 0) {
+            sum += 128;
+        }
+
+        return sum;
 
     }
+
+    private ArrayList<ArrayList<Integer>> deleteAll4(ArrayList<ArrayList<Integer>> imageRepresentation) {
+        int width = imageRepresentation.size();
+        int heigth = imageRepresentation.get(0).size();
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < heigth; j++) {
+                if (imageRepresentation.get(i).get(j) == 4) {
+                    imageRepresentation.get(i).set(j, 0);
+                }
+            }
+        }
+
+        return imageRepresentation;
+    }
+
+    private Integer[] neighbours = {3, 12, 48, 192, 6, 24, 96, 129, // - 2 sąsiadów
+            14, 56, 131, 224, 7, 28, 112, 193, // - 3 sąsiadów
+            195, 135, 15, 30, 60, 120, 240, 225}; // - 4 sąsiadów
+
+    private ArrayList<ArrayList<Integer>> changePixelsWith2or3or4NeighboursTo4
+            (ArrayList<ArrayList<Integer>> imageRepresentation) {
+        List<Integer> neighbours = Arrays.asList(this.neighbours);
+        int width = imageRepresentation.size();
+        int heigth = imageRepresentation.get(0).size();
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < heigth; j++) {
+                int weight = calculatePixelWeight(imageRepresentation, i, j);
+                if (neighbours.contains(weight)) {
+                    imageRepresentation.get(i).set(j, 4);
+                }
+            }
+        }
+        return imageRepresentation;
+    }
+
+    private ArrayList<ArrayList<Integer>> change1CornerrConnnectedTo0To3
+            (ArrayList<ArrayList<Integer>> imageRepresentation) {
+        int width = imageRepresentation.size();
+        int heigth = imageRepresentation.get(0).size();
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < heigth; j++) {
+                if (imageRepresentation.get(i).get(j) == 1) {
+                    int pixel1 = 1, pixel2 = 1, pixel3 = 1, pixel4 = 1;
+                    try {
+                        pixel1 = imageRepresentation.get(i - 1).get(j - 1);
+                    } catch (Exception ignored) {
+                    }
+                    try {
+                        pixel2 = imageRepresentation.get(i + 1).get(j + 1);
+                    } catch (Exception ignored) {
+                    }
+                    try {
+                        pixel3 = imageRepresentation.get(i - 1).get(j + 1);
+                    } catch (Exception ignored) {
+                    }
+                    try {
+                        pixel4 = imageRepresentation.get(i + 1).get(j - 1);
+                    } catch (Exception ignored) {
+                    }
+
+                    if (pixel1 == 0 || pixel2 == 0 || pixel3 == 0 || pixel4 == 0) {
+                        imageRepresentation.get(i).set(j, 3);
+                    }
+                }
+            }
+        }
+        return imageRepresentation;
+    }
+
+    private ArrayList<ArrayList<Integer>> change1EdgeConnnectedTo0To2
+            (ArrayList<ArrayList<Integer>> imageRepresentation) {
+        int width = imageRepresentation.size();
+        int heigth = imageRepresentation.get(0).size();
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < heigth; j++) {
+                if (imageRepresentation.get(i).get(j) == 1) {
+                    int pixel1 = 1, pixel2 = 1, pixel3 = 1, pixel4 = 1;
+                    try {
+                        pixel1 = imageRepresentation.get(i).get(j - 1);
+                    } catch (Exception ignored) {
+
+                    }
+                    try {
+                        pixel2 = imageRepresentation.get(i).get(j + 1);
+                    } catch (Exception ignored) {
+
+                    }
+                    try {
+                        pixel3 = imageRepresentation.get(i - 1).get(j);
+                    } catch (Exception ignored) {
+
+                    }
+                    try {
+                        pixel4 = imageRepresentation.get(i + 1).get(j);
+                    } catch (Exception ignored) {
+
+                    }
+                    if (pixel1 == 0 || pixel2 == 0 || pixel3 == 0 || pixel4 == 0) {
+                        imageRepresentation.get(i).set(j, 2);
+                    }
+                }
+            }
+        }
+        return imageRepresentation;
+    }
+
+
+    public ArrayList<ArrayList<Integer>> getInitialArrayForKmm() {
+        ArrayList<ArrayList<Integer>> imageRepresentation = new ArrayList<ArrayList<Integer>>();
+        if (imageView.getImage() != null) {
+            BufferedImage image = SwingFXUtils.fromFXImage(imageView.getImage(), null);
+            PixelReader pixelReader = imageView.getImage().getPixelReader();
+            for (int i = 0; i < imageView.getImage().getWidth(); i++) {
+                ArrayList<Integer> row = new ArrayList<>();
+                for (int j = 0; j < imageView.getImage().getHeight(); j++) {
+                    try {
+                        javafx.scene.paint.Color colorReaded = pixelReader.getColor(i, j);
+                        int brightness = (int) Math.round(255 * colorReaded.getBrightness());
+                        if (brightness == 255) {
+                            row.add(0);
+                        } else if (brightness == 0) {
+                            row.add(1);
+                        }
+                    } catch (java.lang.IllegalArgumentException ex) {
+                        System.out.println("error");
+                        logger.info("handleSetRGB - no value specified for RGB, retrying");
+                    }
+                }
+                imageRepresentation.add(row);
+            }
+        }
+        return imageRepresentation;
+    }
+
+
+    private ArrayList<Pixel> minutiaeList;
+
+
+    //minucje
+    public ArrayList<ArrayList<Integer>> detectMinutiae(ArrayList<ArrayList<Integer>> imageRepresentation) {
+        ArrayList<Pixel> rozgalezienia = ridgeBifurcations(imageRepresentation);
+        for (Pixel pixel : rozgalezienia) {
+            imageRepresentation.get(pixel.getI()).set(pixel.getJ(), 2);
+        }
+        ArrayList<Pixel> zakonczenia = ridgeEndings(imageRepresentation);
+        for (Pixel pixel : zakonczenia) {
+            imageRepresentation.get(pixel.getI()).set(pixel.getJ(), 3);
+        }
+
+        return imageRepresentation;
+    }
+
+    //rozgałęzienia
+    private ArrayList<Pixel> ridgeBifurcations(ArrayList<ArrayList<Integer>> imageRepresentation) {
+        minutiaeList = new ArrayList<>();
+        for (int i = 4; i < imageRepresentation.size() - 4; i++) {
+            for (int j = 4; j < imageRepresentation.get(i).size() - 4; j++) {
+                if (imageRepresentation.get(i).get(j) == 0)
+                    continue;
+                int square9 = 0;
+                int square5 = 0;
+
+                //szukanie przecięć z górnym i dolnym bokiem kwadratu 9x9
+                for (int a = i - 4; a <= i + 4; a++) {
+                    if (imageRepresentation.get(a).get(j - 4) > 0) {
+                        square9++;
+                    }
+                    if (imageRepresentation.get(a).get(j + 4) > 0) {
+                        square9++;
+                    }
+                }
+                //szukanie przecięć z lewym i prawym bokiem kwadratu 9x9
+                for (int a = j - 3; a <= j + 3; a++) {
+                    if (imageRepresentation.get(i - 4).get(a) > 0) {
+                        square9++;
+                    }
+                    if (imageRepresentation.get(i + 4).get(a) > 0) {
+                        square9++;
+                    }
+                }
+                if (square9 == 3) {
+                    //szukanie przecięć z górnym i dolnym bokiem kwadratu 5x5
+                    for (int a = i - 2; a <= i + 2; a++) {
+                        if (imageRepresentation.get(a).get(j - 2) > 0) {
+                            square5++;
+                        }
+                        if (imageRepresentation.get(a).get(j + 2) > 0) {
+                            square5++;
+                        }
+                    }
+                    //szukanie przecięć z lewym i prawym bokiem kwadratu 5x5
+                    for (int a = j - 1; a <= j + 1; a++) {
+                        if (imageRepresentation.get(i - 2).get(a) > 0) {
+                            square5++;
+                        }
+                        if (imageRepresentation.get(i + 2).get(a) > 0) {
+                            square5++;
+                        }
+                    }
+                    if (square5 == 3) {
+                        minutiaeList.add(new Pixel(i, j));
+                    }
+                }
+            }
+        }
+
+        //Usuwanie duplikatów rozgałęzień - minucje w odległości mniejszej niż 10 pixeli
+        ArrayList<Pixel> minutiaeListCopy = new ArrayList<>(minutiaeList);
+        ArrayList<Pixel> removedPixels = new ArrayList<>();
+
+        for (int i = 0; i < minutiaeList.size(); i++) {
+            if (removedPixels.contains(minutiaeList.get(i)))
+                continue;
+            for (Pixel aMinutiaeList : minutiaeList) {
+                if (removedPixels.contains(aMinutiaeList))
+                    continue;
+                Pixel p1 = minutiaeList.get(i);
+                if (p1 != aMinutiaeList) {
+                    int distance = (int) Math.sqrt(Math.pow(p1.getI() - aMinutiaeList.getI(), 2) +
+                            Math.pow(p1.getJ() - aMinutiaeList.getJ(), 2));
+                    if (distance < 10) {
+                        minutiaeListCopy.remove(p1);
+                        removedPixels.add(p1);
+                    }
+                }
+            }
+        }
+
+        minutiaeList = minutiaeListCopy;
+
+        return minutiaeList;
+
+        //TODO zaznacz jako 2 na obrazie
+        //zaznaczanie na obrazie znalezionych rozgałęzień
+
+    }
+
+    //zakończenia
+    private ArrayList<Pixel> ridgeEndings(ArrayList<ArrayList<Integer>> imageRepresentation) {
+        minutiaeList = new ArrayList<>();
+        for (int i = 1; i < imageRepresentation.size() - 1; i++) {
+            for (int j = 1; j < imageRepresentation.get(0).size() - 1; j++) {
+                if (imageRepresentation.get(i).get(j) == 0)
+                    continue;
+                int neighbours = 0;
+
+                //zliczanie ilości sąsiadów piksela w obrębie kwadratu 3x3
+                //górny i dolny bok kawdratu
+                for (int a = i - 1; a < i + 2; a++) {
+                    //góra
+                    if (imageRepresentation.get(a).get(j - 1) > 0) {
+                        neighbours++;
+                    }
+                    //dół
+                    if (imageRepresentation.get(a).get(j + 1) > 0) {
+                        neighbours++;
+                    }
+                }
+                //lewy i prawy bok kwadratu
+                //lewy
+                if (imageRepresentation.get(i - 1).get(j) > 0) {
+                    neighbours++;
+                }
+                //prawy
+                if (imageRepresentation.get(i + 1).get(j) > 0) {
+                    neighbours++;
+                }
+
+                //odrzucanie brzegowych zakończeń
+                boolean borderPixel = true;
+                if (neighbours == 1) {
+                    //przeszukiwanie pikseli w dół obrazu
+                    int area = 30;
+                    for (int z = j + 1; z < j + area && z < imageRepresentation.get(0).size(); z++) {
+                        if (imageRepresentation.get(i).get(z) != 0) {
+                            borderPixel = false;
+                            break;
+                        }
+                    }
+                    if (!borderPixel) {
+                        //przeszukiwanie pikseli w górę
+                        borderPixel = true;
+                        for (int z = j - 1; z > j - area && z >= 0; z--) {
+                            if (imageRepresentation.get(i).get(z) != 0) {
+                                borderPixel = false;
+                                break;
+                            }
+                        }
+                        if (!borderPixel) {
+                            borderPixel = true;
+                            //przeszukiwanie w prawą stronę
+                            for (int x = i + 1; x < i + area && x < imageRepresentation.size(); x++) {
+                                if (imageRepresentation.get(x).get(j) != 0) {
+                                    borderPixel = false;
+                                    break;
+                                }
+                            }
+                            if (!borderPixel) {
+                                borderPixel = true;
+                                //przeszukiwanie w lewą stronę
+                                for (int x = i - 1; x > i - area && x >= 0; x--) {
+                                    if (imageRepresentation.get(x).get(j) != 0) {
+                                        borderPixel = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                //jeżeli zakończenie nie jest pikselem brzegowym dodanie do listy minucji
+                if (!borderPixel) {
+                    minutiaeList.add(new Pixel(i, j));
+                }
+            }
+        }
+
+        return minutiaeList;
+        //zaznaczanie na obrazie znalezionych zakończeń
+        //TODO zaznacz jako 3 na obrazie
+    }
+
+
 }

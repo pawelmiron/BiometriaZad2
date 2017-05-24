@@ -1,1 +1,8 @@
 2017-03-15 08:43:05 INFO  MenuController:221 - handleSetRGB - no value specified for RGB, retrying
+2017-05-10 16:15:35 WARN  Screen1Controller:264 - handleGetRGB - no image, ignoring method
+2017-05-22 22:08:31 INFO  Screen1Controller:358 - Green: 1.0 Red: 1.0 Blue: 1.0
+2017-05-22 22:08:32 INFO  Screen1Controller:358 - Green: 1.0 Red: 1.0 Blue: 1.0
+2017-05-22 22:08:33 INFO  Screen1Controller:358 - Green: 1.0 Red: 1.0 Blue: 1.0
+2017-05-22 22:08:34 INFO  Screen1Controller:358 - Green: 1.0 Red: 1.0 Blue: 1.0
+2017-05-22 22:08:35 INFO  Screen1Controller:358 - Green: 1.0 Red: 1.0 Blue: 1.0
+2017-05-22 22:08:35 INFO  Screen1Controller:358 - Green: 1.0 Red: 1.0 Blue: 1.0
